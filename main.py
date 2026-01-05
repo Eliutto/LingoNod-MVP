@@ -1,3 +1,13 @@
+"""
+-------------------------------------------------------------------------
+PROYECTO: LingoNod MVP (ACA 3)
+DESCRIPCIÓN: Sistema de traducción comercial con FastAPI y Web Speech API.
+AUTORES: 
+    - Jhonny Alberto Cotrina Buitrago
+    - Gerson Eliut Torrado Guerrero
+FECHA: Enero 2026
+-------------------------------------------------------------------------
+"""
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse
@@ -69,4 +79,5 @@ def get_reporte():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,6 +1,15 @@
 # LingoNod MVP
 **Plataforma de Asistencia Multilingüe para Retail y Hostelería**
 
+### Autores
+**Proyecto realizado por:**
+* **Jhonny Alberto Cotrina Buitrago**
+* **Gerson Eliut Torrado Guerrero**
+
+**Asignatura:** Creatividad y Pensamiento Innovador (Código 55597)
+**Docente:** Hugo Herley Malaver Guzmán
+**Institución:** Corporación Unificada Nacional de Educación Superior (CUN)
+
 Este proyecto es un prototipo funcional (MVP) desarrollado como parte de la **Actividad de Construcción Aplicada (ACA 3)**. Permite la traducción bidireccional en tiempo real entre Cajeros (Español) y Clientes (Inglés) utilizando Python y Servicios Cognitivos.
 
 ## Características

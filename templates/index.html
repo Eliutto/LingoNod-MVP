@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LingoNod Final</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f4f4; height: 100vh; overflow: hidden; }
+        
+        /* LOGIN */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; z-index: 1000; display: flex; justify-content: center; align-items: center; }
+        .login-box { background: white; padding: 40px; border-radius: 10px; text-align: center; width: 350px; }
+        
+        /* APP */
+        #app-screen { display: none; height: 100%; }
+        .full-height { height: 100%; }
+        .client-zone { background-color: #e3f2fd; border-right: 1px solid #ccc; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .cashier-zone { background-color: #f1f8e9; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        
+        /* BOTONES */
+        .btn-mic { width: 150px; height: 150px; border-radius: 50%; font-size: 40px; border: none; transition: 0.3s; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .recording { animation: pulse 1.5s infinite; background-color: #ff5252 !important; color: white !important; }
+        .speaking { background-color: #ffc107 !important; color: black !important; animation: none; cursor: wait; }
+        
+        .result-card { background: white; padding: 20px; border-radius: 15px; width: 80%; min-height: 120px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .control-panel { position: absolute; top: 20px; right: 20px; z-index: 100; display: flex; gap: 10px; }
+        #btn-reporte { display: none; }
+        
+        /* MODAL */
+        .modal-report { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 500; justify-content: center; align-items: center; }
+        .report-content { background: white; width: 80%; height: 80%; padding: 20px; border-radius: 10px; overflow-y: auto; }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+    <div id="login-screen">
+        <div class="login-box">
+            
+            <img src="/static/logo.png" alt="Logo LingoNod" style="max-width: 150px; margin-bottom: 20px;">
+            
+            <h2 class="mb-3">Acceso</h2>
+            <p class="text-muted mb-4">Sistema de Traducción Comercial</p>
+            
+            <div class="mb-3"><input type="text" id="username" class="form-control" placeholder="Usuario"></div>
+            <div class="mb-3">
+                <select id="role" class="form-select">
+                    <option value="cajero">Cajero</option>
+                    <option value="supervisor">Supervisor</option>
+                </select>
+            </div>
+            <button class="btn btn-primary w-100" onclick="login()">Entrar</button>
+        </div>
+    </div>
+
+    <div id="app-screen" class="container-fluid">
+        <div class="control-panel">
+            <button id="btn-reporte" class="btn btn-warning" onclick="mostrarReporte()">Reportes</button>
+            <button class="btn btn-danger" onclick="logout()">Cerrar Sesion</button>
+        </div>
+        <div class="row full-height">
+            <div class="col-md-6 client-zone">
+                <h3 class="text-primary">CLIENTE</h3>
+                <button id="btn-client" class="btn-mic btn-primary" onclick="startListening('en-US', 'es')">🎤</button>
+                <div class="result-card"><small>Detectado:</small><p id="text-client">...</p><hr><small>Traducido:</small><p id="trans-client" class="text-success fw-bold">...</p></div>
+            </div>
+            <div class="col-md-6 cashier-zone">
+                <h3 class="text-success">CAJERO</h3>
+                <button id="btn-cashier" class="btn-mic btn-success" onclick="startListening('es-ES', 'en')">🎤</button>
+                <div class="result-card"><small>Detectado:</small><p id="text-cashier">...</p><hr><small>Traducido:</small><p id="trans-cashier" class="text-primary fw-bold">...</p></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-reporte" class="modal-report">
+        <div class="report-content">
+            <div class="d-flex justify-content-between mb-3"><h3>📋 Historial</h3><button class="btn btn-danger" onclick="cerrarReporte()">Cerrar</button></div>
+            <table class="table table-striped"><thead><tr><th>Hora</th><th>Origen</th><th>Destino</th><th>Texto</th><th>Traducción</th></tr></thead><tbody id="tabla-body"></tbody></table>
+        </div>
+    </div>
+
+    <script>
+        function login() {
+            if(!document.getElementById('username').value) return alert("Pon un nombre");
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'block';
+            if (document.getElementById('role').value === 'supervisor') document.getElementById('btn-reporte').style.display = 'block';
+        }
+        function logout() { location.reload(); }
+
+        // --- LÓGICA CALIBRADA ---
+        let isBusy = false; // Semáforo global
+
+        function startListening(sourceLang, targetLang) {
+            if (isBusy) return; // Si está ocupado, no hace nada
+
+            // 1. SILENCIO TOTAL: Callar a la PC antes de empezar
+            window.speechSynthesis.cancel();
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return alert("Usa Chrome");
+            
+            const recognition = new SpeechRecognition();
+            recognition.lang = sourceLang;
+            recognition.interimResults = false; // No mostrar borradores
+            recognition.maxAlternatives = 1;
+
+            // Identificar elementos
+            let btnId = sourceLang.includes('en') ? 'btn-client' : 'btn-cashier';
+            let outputId = sourceLang.includes('en') ? 'text-client' : 'text-cashier';
+            let transId = sourceLang.includes('en') ? 'trans-client' : 'trans-cashier';
+
+            // Activar Modo Grabación
+            isBusy = true;
+            document.getElementById(btnId).classList.add('recording');
+            document.getElementById(btnId).innerText = "👂";
+
+            recognition.start();
+
+            // --- AQUÍ ESTÁ EL CAMBIO CLAVE ---
+            // Solo procesamos cuando el navegador dice "isFinal" (frase terminada)
+            recognition.onresult = async function(event) {
+                if (event.results[0].isFinal) {
+                    // APAGAR OÍDO INMEDIATAMENTE para evitar eco
+                    recognition.stop();
+                    
+                    const text = event.results[0][0].transcript;
+                    document.getElementById(outputId).innerText = text;
+                    
+                    // Cambiar estado visual a "Procesando/Hablando"
+                    document.getElementById(btnId).classList.remove('recording');
+                    document.getElementById(btnId).classList.add('speaking');
+                    document.getElementById(btnId).innerText = "🔊";
+
+                    try {
+                        // Enviar a Python
+                        const response = await fetch('/translate', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ text: text, source_lang: sourceLang, target_lang: targetLang })
+                        });
+                        
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            document.getElementById(transId).innerText = data.translated;
+                            speak(data.translated, targetLang, btnId);
+                        } else {
+                            document.getElementById(transId).innerText = "Error: " + data.message;
+                            resetState(btnId);
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        resetState(btnId);
+                    }
+                }
+            };
+
+            // Si el usuario se queda callado o hay error
+            recognition.onend = function() {
+                // Solo reseteamos si NO estamos esperando que la PC hable
+                if (!document.getElementById(btnId).classList.contains('speaking')) {
+                    resetState(btnId);
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                console.log("Error rec:", event.error);
+                resetState(btnId);
+            };
+        }
+
+        function speak(text, lang, btnId) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+
+            // CUANDO TERMINE DE HABLAR LA PC -> LIBERAR SISTEMA
+            utterance.onend = function() {
+                resetState(btnId);
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function resetState(btnId) {
+            isBusy = false;
+            if(btnId) {
+                document.getElementById(btnId).classList.remove('recording');
+                document.getElementById(btnId).classList.remove('speaking');
+                document.getElementById(btnId).innerText = "🎤";
+            } else {
+                // Resetear todos por si acaso
+                document.querySelectorAll('.btn-mic').forEach(btn => {
+                    btn.classList.remove('recording');
+                    btn.classList.remove('speaking');
+                    btn.innerText = "🎤";
+                });
+            }
+        }
+        
+        // Reportes
+        async function mostrarReporte() {
+            const res = await fetch('/api/reporte');
+            const datos = await res.json();
+            const tbody = document.getElementById('tabla-body');
+            tbody.innerHTML = "";
+            datos.slice().reverse().forEach(d => {
+                tbody.innerHTML += `<tr><td>${d.hora}</td><td>${d.idioma_origen}</td><td>${d.idioma_destino}</td><td>${d.original}</td><td>${d.traduccion}</td></tr>`;
+            });
+            document.getElementById('modal-reporte').style.display = 'flex';
+        }
+        function cerrarReporte() { document.getElementById('modal-reporte').style.display = 'none'; }
+    </script>
+</body>
+</html>

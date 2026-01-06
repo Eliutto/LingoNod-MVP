@@ -45,6 +45,7 @@ PowerShell
 
 python -m venv venv
 .\venv\Scripts\activate
+
 (Si ves (venv) al inicio de la línea, ya está activo).
 
 En macOS / Linux:
@@ -53,6 +54,7 @@ Bash
 
 python3 -m venv venv
 source venv/bin/activate
+
 3. Instalar dependencias
 Una vez activado el entorno virtual, instala lo necesario:
 
@@ -60,10 +62,13 @@ Bash
 
 pip install -r requirements.txt
 4. Ejecutar el servidor
+
 Inicia la aplicación:
 
 Bash
 
 python main.py
+
 5. Abrir en el navegador
+
 Ingresa a: http://localhost:8000

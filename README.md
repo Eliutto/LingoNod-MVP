@@ -28,17 +28,42 @@ Este proyecto es un prototipo funcional (MVP) desarrollado como parte de la **Ac
 
 Sigue estos pasos para probar el proyecto en tu máquina:
 
-1. **Clonar el repositorio:**
-   Descarga el código como ZIP o usa git:
-   ```bash
-   git clone [https://github.com/TU_USUARIO/LingoNod-MVP.git](https://github.com/TU_USUARIO/LingoNod-MVP.git)
+## Prerrequisitos: Asegúrate de tener Python instalado.
 
-2 ## Instalar dependencias: Abre la terminal en la carpeta del proyecto y ejecuta:
+1. Clonar el repositorio
+Descarga el código o usa git:
+
 Bash
+https://github.com/Eliutto/LingoNod-MVP.git
+
+2. Crear y activar un entorno virtual (Recomendado)
+Esto aísla las librerías del proyecto para evitar errores con tu sistema.
+
+En Windows:
+
+PowerShell
+
+python -m venv venv
+.\venv\Scripts\activate
+(Si ves (venv) al inicio de la línea, ya está activo).
+
+En macOS / Linux:
+
+Bash
+
+python3 -m venv venv
+source venv/bin/activate
+3. Instalar dependencias
+Una vez activado el entorno virtual, instala lo necesario:
+
+Bash
+
 pip install -r requirements.txt
+4. Ejecutar el servidor
+Inicia la aplicación:
 
-3 ## Ejecutar el servidor:
 Bash
-python main.py
 
-Abrir en el navegador: Ingresa a: http://localhost:8000
+python main.py
+5. Abrir en el navegador
+Ingresa a: http://localhost:8000

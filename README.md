@@ -45,7 +45,7 @@ PowerShell
 
 python -m venv venv
 
-\venv\Scripts\activate
+.\venv\Scripts\activate
 
 (Si ves (venv) al inicio de la línea, ya está activo).
 

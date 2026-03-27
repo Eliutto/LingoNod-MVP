@@ -90,12 +90,12 @@
         function logout() { location.reload(); }
 
         // --- LÓGICA CALIBRADA ---
-        let isBusy = false; // Semáforo global
+        let isBusy = false; 
 
         function startListening(sourceLang, targetLang) {
-            if (isBusy) return; // Si está ocupado, no hace nada
+            if (isBusy) return; 
 
-            // 1. SILENCIO TOTAL: Callar a la PC antes de empezar
+            // 1. SILENCIO 
             window.speechSynthesis.cancel();
             
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -103,7 +103,7 @@
             
             const recognition = new SpeechRecognition();
             recognition.lang = sourceLang;
-            recognition.interimResults = false; // No mostrar borradores
+            recognition.interimResults = false; 
             recognition.maxAlternatives = 1;
 
             // Identificar elementos
@@ -118,11 +118,10 @@
 
             recognition.start();
 
-            // --- AQUÍ ESTÁ EL CAMBIO CLAVE ---
             // Solo procesamos cuando el navegador dice "isFinal" (frase terminada)
             recognition.onresult = async function(event) {
                 if (event.results[0].isFinal) {
-                    // APAGAR OÍDO INMEDIATAMENTE para evitar eco
+                    // APAGAR OÍDO para evitar eco
                     recognition.stop();
                     
                     const text = event.results[0][0].transcript;
